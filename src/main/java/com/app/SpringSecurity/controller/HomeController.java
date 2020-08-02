@@ -3,7 +3,9 @@ package com.app.SpringSecurity.controller;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.app.SpringSecurity.model.AuthRequest;
+import com.app.SpringSecurity.model.AuthResponse;
 import com.app.SpringSecurity.service.UserDetailService;
+import com.app.SpringSecurity.util.JwtUtil;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Required;
@@ -24,6 +26,9 @@ class HomeController
 	
 	@Autowired
 	UserDetailService UserDetailsService;
+	
+	@Autowired
+	JwtUtil jwtUtil;
 
 	@RequestMapping(value = "/", method = RequestMethod.GET)
 	public String home() {
@@ -31,7 +36,7 @@ class HomeController
 	}
 	
 	@RequestMapping(value = "/auth", method = RequestMethod.POST)
-	public void auth(@RequestBody AuthRequest authRequest) throws Exception {
+	public ResponseEntity<?> auth(@RequestBody AuthRequest authRequest) throws Exception {
 		try {
 			authManager.authenticate(new UsernamePasswordAuthenticationToken(authRequest.getUserName(), authRequest.getPassword()));
 		}catch (Exception e) {
@@ -39,6 +44,9 @@ class HomeController
 		}
 		final UserDetails userDetails = UserDetailsService.loadUserByUsername(authRequest.getUserName());
 		System.out.println("User" + userDetails.getPassword());
+		String jwt = jwtUtil.generateToken(userDetails);
+		
+		return ResponseEntity.ok(new AuthResponse(jwt));
 		
 	}
 }
